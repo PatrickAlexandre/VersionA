@@ -1,24 +1,56 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Planning Mensuel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 text-gray-900">
-    <header class="bg-green-600 text-white py-4 text-center">
-        <h1 class="text-xl font-bold">Secteur Nord @Sartrouville</h1>
-        <p class="text-sm">Jardiniers | Espaces Verts</p>
-    </header>
-    <main class="p-4">
-        <div class="container mx-auto">
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <div class="p-4">
-                    <iframe class="w-full h-screen md:h-96" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vR8-nkAt6lwhY-mRqExrhlCn_mMImAwTqnhqL-PUn0AyFzHZ5li9rYAiIDG0vId1707unIYndOuBldS/pubhtml?gid=197084924&amp;single=true&amp;widget=true&amp;headers=false"></iframe>
-                </div>
-            </div>
-        </div>
-    </main>
-</body>
+<html>
+  <head>
+    <title>Street View du parc Youri Gagarine</title>
+    <style>
+      /* Définir la taille de la carte */
+      #map {
+        height: 100%;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+    <script>
+      function initMap() {
+        // Créer la carte
+        var map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 48.849919, lng: 2.637041 }, // Coordonnées approximatives du parc Youri Gagarine
+          zoom: 18,
+        });
+
+        // Ajouter Street View
+        var panorama = new google.maps.StreetViewPanorama(
+          document.getElementById('map'), {
+            position: { lat: 48.849919, lng: 2.637041 },
+            pov: { heading: 165, pitch: 0 },
+            zoom: 1
+          }
+        );
+        map.setStreetView(panorama);
+
+        // Ajouter une couche personnalisée pour les espaces verts
+        var greenAreasLayer = new google.maps.Data();
+        greenAreasLayer.loadGeoJson('green_areas.geojson');
+        greenAreasLayer.setStyle({
+          fillColor: 'green',
+          strokeColor: 'green',
+          strokeWeight: 1
+        });
+        greenAreasLayer.setMap(map);
+      }
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        initMap();
+      });
+    </script>
+  </body>
 </html>
