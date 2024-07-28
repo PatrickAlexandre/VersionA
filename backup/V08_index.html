@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Espaces Verts</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        #map { height: 100vh; }
+        #planning { height: 100vh; overflow-y: auto; }
+        @media (max-width: 768px) {
+            #map { height: 50vh; }
+            #planning { height: 50vh; }
+        }
+        .hidden { display: none; }
+        .btn-icon { font-size: 1.2rem; }
+        .btn-primary { background-color: #006400; border-color: #004d00; }
+        .btn-primary:hover { background-color: #004d00; border-color: #003300; }
+        .table th, .table td { text-align: center; }
+        .table-bordered { border-color: #006400; }
+        .table-bordered th, .table-bordered td { border: 1px solid #006400; }
+        #site-list ul { padding: 0; list-style: none; }
+        #site-list .list-group-item { background-color: #f0f8ff; border: 1px solid #006400; }
+        #site-list .list-group-item:hover { background-color: #e6ffe6; }
+        #planning-content { background-color: #f0f8ff; padding: 15px; }
+        #site-table {
+            overflow-x: auto;
+        }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-12 p-0">
+                <div id="map"></div>
+            </div>
+            <div class="col-md-6 col-12">
+                <div id="planning" class="p-3">
+                    <h2 class="text-center">PLANNING MENSUEL EQUIPE NORD</h2>
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-primary btn-icon" id="view-list">
+                                <i class="fas fa-list"></i> Liste
+                            </button>
+                            <button type="button" class="btn btn-primary btn-icon" id="view-table">
+                                <i class="fas fa-table"></i> Tableau
+                            </button>
+                            <button type="button" class="btn btn-primary btn-icon" id="view-planning">
+                                <i class="fas fa-calendar-alt"></i> Planning
+                            </button>
+                        </div>
+                    </div>
+                    <input type="text" id="search" class="form-control mb-3" placeholder="Recherche...">
+                    <div id="site-list"></div>
+                    <div id="site-table" class="hidden">
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr><th>Nom du site</th><th>Latitude</th><th>Longitude</th><th>Dernière Collecte</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="planning-content" class="hidden">
+                        <p>Contenu du planning...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialisation de la carte
+        var map = L.map('map').setView([48.9401, 2.1769], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(map);
+
+        var greenSpaces = [
+            {
+                "name": "Parc des Trois Ormes",
+                "coordinates": [
+                    [48.9391, 2.1778],
+                    [48.9392, 2.1781],
+                    [48.9394, 2.1779],
+                    [48.9393, 2.1776]
+                ],
+                "lastCollection": "2024-06-15"
+            },
+            {
+                "name": "Jardin de l'Église",
+                "coordinates": [
+                    [48.9405, 2.1762],
+                    [48.9406, 2.1765],
+                    [48.9408, 2.1763],
+                    [48.9407, 2.1760]
+                ],
+                "lastCollection": "2024-05-20"
+            },
+            {
+                "name": "Square des Libertés",
+                "coordinates": [
+                    [48.9410, 2.1784],
+                    [48.9411, 2.1787],
+                    [48.9413, 2.1785],
+                    [48.9412, 2.1782]
+                ],
+                "lastCollection": "2024-07-10"
+            },
+            {
+                "name": "Parc du Centre",
+                "coordinates": [
+                    [48.9420, 2.1751],
+                    [48.9422, 2.1754],
+                    [48.9424, 2.1752],
+                    [48.9423, 2.1749]
+                ],
+                "lastCollection": "2024-06-05"
+            },
+            {
+                "name": "Parc Youri Gagarine",
+                "coordinates": [
+                    [48.9350, 2.1850],
+                    [48.9352, 2.1853],
+                    [48.9354, 2.1851],
+                    [48.9353, 2.1848]
+                ],
+                "lastCollection": "2024-06-01"
+            },
+            {
+                "name": "Parc Genevoix",
+                "coordinates": [
+                    [48.9360, 2.1860],
+                    [48.9362, 2.1863],
+                    [48.9364, 2.1861],
+                    [48.9363, 2.1858]
+                ],
+                "lastCollection": "2024-06-03"
+            },
+            {
+                "name": "Parc Léo Lagrange",
+                "coordinates": [
+                    [48.9370, 2.1870],
+                    [48.9372, 2.1873],
+                    [48.9374, 2.1871],
+                    [48.9373, 2.1868]
+                ],
+                "lastCollection": "2024-06-05"
+            },
+            {
+                "name": "Parc de la Fête",
+                "coordinates": [
+                    [48.9380, 2.1880],
+                    [48.9382, 2.1883],
+                    [48.9384, 2.1881],
+                    [48.9383, 2.1878]
+                ],
+                "lastCollection": "2024-06-07"
+            },
+            {
+                "name": "Parc des 4 chemins et sa noue paysagère",
+                "coordinates": [
+                    [48.9390, 2.1890],
+                    [48.9392, 2.1893],
+                    [48.9394, 2.1891],
+                    [48.9393, 2.1888]
+                ],
+                "lastCollection": "2024-06-09"
+            },
+            {
+                "name": "Square Linné",
+                "coordinates": [
+                    [48.9400, 2.1900],
+                    [48.9402, 2.1903],
+                    [48.9404, 2.1901],
+                    [48.9403, 2.1898]
+                ],
+                "lastCollection": "2024-06-11"
+            },
+            {
+                "name": "Square Raoul Duffy",
+                "coordinates": [
+                    [48.9410, 2.1910],
+                    [48.9412, 2.1913],
+                    [48.9414, 2.1911],
+                    [48.9413, 2.1908]
+                ],
+                "lastCollection": "2024-06-13"
+            },
+            {
+                "name": "Place Alexandre Dumas",
+                "coordinates": [
+                    [48.9420, 2.1920],
+                    [48.9422, 2.1923],
+                    [48.9424, 2.1921],
+                    [48.9423, 2.1918]
+                ],
+                "lastCollection": "2024-06-15"
+            },
+            {
+                "name": "Place Stendhal",
+                "coordinates": [
+                    [48.9430, 2.1930],
+                    [48.9432, 2.1933],
+                    [48.9434, 2.1931],
+                    [48.9433, 2.1928]
+                ],
+                "lastCollection": "2024-06-17"
+            },
+            {
+                "name": "PMG Ouest",
+                "coordinates": [
+                    [48.9440, 2.1940],
+                    [48.9442, 2.1943],
+                    [48.9444, 2.1941],
+                    [48.9443, 2.1938]
+                ],
+                "lastCollection": "2024-06-19"
+            },
+            {
+                "name": "PMG Est",
+                "coordinates": [
+                    [48.9450, 2.1950],
+                    [48.9452, 2.1953],
+                    [48.9454, 2.1951],
+                    [48.9453, 2.1948]
+                ],
+                "lastCollection": "2024-06-21"
+            },
+            {
+                "name": "Place Darwin",
+                "coordinates": [
+                    [48.9460, 2.1960],
+                    [48.9462, 2.1963],
+                    [48.9464, 2.1961],
+                    [48.9463, 2.1958]
+                ],
+                "lastCollection": "2024-06-23"
+            },
+            {
+                "name": "Grand V",
+                "coordinates": [
+                    [48.9470, 2.1970],
+                    [48.9472, 2.1973],
+                    [48.9474, 2.1971],
+                    [48.9473, 2.1968]
+                ],
+                "lastCollection": "2024-06-25"
+            },
+            {
+                "name": "Parc des Indes + esplanade G. Brassens",
+                "coordinates": [
+                    [48.9480, 2.1980],
+                    [48.9482, 2.1983],
+                    [48.9484, 2.1981],
+                    [48.9483, 2.1978]
+                ],
+                "lastCollection": "2024-06-27"
+            },
+            {
+                "name": "Rond-point Grétry",
+                "coordinates": [
+                    [48.9490, 2.1990],
+                    [48.9492, 2.1993],
+                    [48.9494, 2.1991],
+                    [48.9493, 2.1988]
+                ],
+                "lastCollection": "2024-06-29"
+            },
+            {
+                "name": "Rond-point Saint Exupéry / G. Clemenceau",
+                "coordinates": [
+                    [48.9500, 2.2000],
+                    [48.9502, 2.2003],
+                    [48.9504, 2.2001],
+                    [48.9503, 2.1998]
+                ],
+                "lastCollection": "2024-07-01"
+            },
+            {
+                "name": "Rond-point de Cormeilles",
+                "coordinates": [
+                    [48.9510, 2.2010],
+                    [48.9512, 2.2013],
+                    [48.9514, 2.2011],
+                    [48.9513, 2.2008]
+                ],
+                "lastCollection": "2024-07-03"
+            },
+            {
+                "name": "Rond-point Maupassant",
+                "coordinates": [
+                    [48.9520, 2.2020],
+                    [48.9522, 2.2023],
+                    [48.9524, 2.2021],
+                    [48.9523, 2.2018]
+                ],
+                "lastCollection": "2024-07-05"
+            },
+            {
+                "name": "Rond-point Timbaud",
+                "coordinates": [
+                    [48.9530, 2.2030],
+                    [48.9532, 2.2033],
+                    [48.9534, 2.2031],
+                    [48.9533, 2.2028]
+                ],
+                "lastCollection": "2024-07-07"
+            },
+            {
+                "name": "Rue Guy de Maupassant",
+                "coordinates": [
+                    [48.9540, 2.2040],
+                    [48.9542, 2.2043],
+                    [48.9544, 2.2041],
+                    [48.9543, 2.2038]
+                ],
+                "lastCollection": "2024-07-09"
+            },
+            {
+                "name": "Gare routière Guy de Maupassant",
+                "coordinates": [
+                    [48.9550, 2.2050],
+                    [48.9552, 2.2053],
+                    [48.9554, 2.2051],
+                    [48.9553, 2.2048]
+                ],
+                "lastCollection": "2024-07-11"
+            },
+            {
+                "name": "Rue Dumas",
+                "coordinates": [
+                    [48.9560, 2.2060],
+                    [48.9562, 2.2063],
+                    [48.9564, 2.2061],
+                    [48.9563, 2.2058]
+                ],
+                "lastCollection": "2024-07-13"
+            },
+            {
+                "name": "Angle rue P. Brossolette / rue Barian",
+                "coordinates": [
+                    [48.9570, 2.2070],
+                    [48.9572, 2.2073],
+                    [48.9574, 2.2071],
+                    [48.9573, 2.2068]
+                ],
+                "lastCollection": "2024-07-15"
+            },
+            {
+                "name": "Zone industrielle",
+                "coordinates": [
+                    [48.9580, 2.2080],
+                    [48.9582, 2.2083],
+                    [48.9584, 2.2081],
+                    [48.9583, 2.2078]
+                ],
+                "lastCollection": "2024-07-17"
+            },
+            {
+                "name": "Rue Florian + rue Lakanal",
+                "coordinates": [
+                    [48.9590, 2.2090],
+                    [48.9592, 2.2093],
+                    [48.9594, 2.2091],
+                    [48.9593, 2.2088]
+                ],
+                "lastCollection": "2024-07-19"
+            },
+            {
+                "name": "Rue de Tunis",
+                "coordinates": [
+                    [48.9600, 2.2100],
+                    [48.9602, 2.2103],
+                    [48.9604, 2.2101],
+                    [48.9603, 2.2098]
+                ],
+                "lastCollection": "2024-07-21"
+            },
+            {
+                "name": "Angle rue Roger Hugues / rue Baudelaire",
+                "coordinates": [
+                    [48.9610, 2.2110],
+                    [48.9612, 2.2113],
+                    [48.9614, 2.2111],
+                    [48.9613, 2.2108]
+                ],
+                "lastCollection": "2024-07-23"
+            },
+            {
+                "name": "Rue des acacias",
+                "coordinates": [
+                    [48.9620, 2.2120],
+                    [48.9622, 2.2123],
+                    [48.9624, 2.2121],
+                    [48.9623, 2.2118]
+                ],
+                "lastCollection": "2024-07-25"
+            },
+            {
+                "name": "Angle rue Condorcet / G. Clemenceau + angle rue Verlaine / G. Clemenceau",
+                "coordinates": [
+                    [48.9630, 2.2130],
+                    [48.9632, 2.2133],
+                    [48.9634, 2.2131],
+                    [48.9633, 2.2128]
+                ],
+                "lastCollection": "2024-07-27"
+            },
+            {
+                "name": "Angle Clemenceau / avenue Val Notre-Dame",
+                "coordinates": [
+                    [48.9640, 2.2140],
+                    [48.9642, 2.2143],
+                    [48.9644, 2.2141],
+                    [48.9643, 2.2138]
+                ],
+                "lastCollection": "2024-07-29"
+            },
+            {
+                "name": "Rue des clos (borne à incendie)",
+                "coordinates": [
+                    [48.9650, 2.2150],
+                    [48.9652, 2.2153],
+                    [48.9654, 2.2151],
+                    [48.9653, 2.2148]
+                ],
+                "lastCollection": "2024-07-31"
+            },
+            {
+                "name": "Rue Calmette - Guérin",
+                "coordinates": [
+                    [48.9660, 2.2160],
+                    [48.9662, 2.2163],
+                    [48.9664, 2.2161],
+                    [48.9663, 2.2158]
+                ],
+                "lastCollection": "2024-08-02"
+            },
+            {
+                "name": "Route de Pontoise",
+                "coordinates": [
+                    [48.9670, 2.2170],
+                    [48.9672, 2.2173],
+                    [48.9674, 2.2171],
+                    [48.9673, 2.2168]
+                ],
+                "lastCollection": "2024-08-04"
+            },
+            {
+                "name": "Rue du clos (face KFC) entretieg externalisé",
+                "coordinates": [
+                    [48.9680, 2.2180],
+                    [48.9682, 2.2183],
+                    [48.9684, 2.2181],
+                    [48.9683, 2.2178]
+                ],
+                "lastCollection": "2024-08-06"
+            },
+            {
+                "name": "Angle rue Bourquelot / rue Paul Bert",
+                "coordinates": [
+                    [48.9690, 2.2190],
+                    [48.9692, 2.2193],
+                    [48.9694, 2.2191],
+                    [48.9693, 2.2188]
+                ],
+                "lastCollection": "2024-08-08"
+            },
+            {
+                "name": "Avenue Rochefort",
+                "coordinates": [
+                    [48.9700, 2.2200],
+                    [48.9702, 2.2203],
+                    [48.9704, 2.2201],
+                    [48.9703, 2.2198]
+                ],
+                "lastCollection": "2024-08-10"
+            },
+            {
+                "name": "Rue F. Villon",
+                "coordinates": [
+                    [48.9710, 2.2210],
+                    [48.9712, 2.2213],
+                    [48.9714, 2.2211],
+                    [48.9713, 2.2208]
+                ],
+                "lastCollection": "2024-08-12"
+            },
+            {
+                "name": "Quartier des 4 chemins (à planifier en hiver)",
+                "coordinates": [
+                    [48.9720, 2.2220],
+                    [48.9722, 2.2223],
+                    [48.9724, 2.2221],
+                    [48.9723, 2.2218]
+                ],
+                "lastCollection": "2024-08-14"
+            },
+            {
+                "name": "Théâtre F. Brel",
+                "coordinates": [
+                    [48.9730, 2.2230],
+                    [48.9732, 2.2233],
+                    [48.9734, 2.2231],
+                    [48.9733, 2.2228]
+                ],
+                "lastCollection": "2024-08-16"
+            },
+            {
+                "name": "Mairie Annexe",
+                "coordinates": [
+                    [48.9740, 2.2240],
+                    [48.9742, 2.2243],
+                    [48.9744, 2.2241],
+                    [48.9743, 2.2238]
+                ],
+                "lastCollection": "2024-08-18"
+            },
+            {
+                "name": "Bibliothèque Stendhal",
+                "coordinates": [
+                    [48.9750, 2.2250],
+                    [48.9752, 2.2253],
+                    [48.9754, 2.2251],
+                    [48.9753, 2.2248]
+                ],
+                "lastCollection": "2024-08-20"
+            },
+            {
+                "name": "Marcel Cerdan",
+                "coordinates": [
+                    [48.9760, 2.2260],
+                    [48.9762, 2.2263],
+                    [48.9764, 2.2261],
+                    [48.9763, 2.2258]
+                ],
+                "lastCollection": "2024-08-22"
+            },
+            {
+                "name": "Tennis Youri Gagarine",
+                "coordinates": [
+                    [48.9770, 2.2270],
+                    [48.9772, 2.2273],
+                    [48.9774, 2.2271],
+                    [48.9773, 2.2268]
+                ],
+                "lastCollection": "2024-08-24"
+            },
+            {
+                "name": "Crèche Croque la vie (mardi matin)",
+                "coordinates": [
+                    [48.9780, 2.2280],
+                    [48.9782, 2.2283],
+                    [48.9784, 2.2281],
+                    [48.9783, 2.2278]
+                ],
+                "lastCollection": "2024-08-26"
+            },
+            {
+                "name": "Halte-garderie Dansons la capucine (mardi matin)",
+                "coordinates": [
+                    [48.9790, 2.2290],
+                    [48.9792, 2.2293],
+                    [48.9794, 2.2291],
+                    [48.9793, 2.2288]
+                ],
+                "lastCollection": "2024-08-28"
+            },
+            {
+                "name": "Centre J. Auriol (hors mercredi et congés scolaires)",
+                "coordinates": [
+                    [48.9800, 2.2300],
+                    [48.9802, 2.2303],
+                    [48.9804, 2.2301],
+                    [48.9803, 2.2298]
+                ],
+                "lastCollection": "2024-08-30"
+            },
+            {
+                "name": "Centre Charles Péguy (mercredi)",
+                "coordinates": [
+                    [48.9810, 2.2310],
+                    [48.9812, 2.2313],
+                    [48.9814, 2.2311],
+                    [48.9813, 2.2308]
+                ],
+                "lastCollection": "2024-09-01"
+            }
+        ];
+
+        var polygons = [];
+
+        // Fonction pour afficher la liste des sites
+        function displayList(sites) {
+            $('#site-list').html('<ul class="list-group">' + sites.map((site, index) => `<li class="list-group-item" data-index="${index}">${site.name}</li>`).join('') + '</ul>');
+        }
+
+        // Fonction pour afficher le tableau des sites
+        function displayTable(sites) {
+            $('#site-table tbody').html(sites.map(site => `<tr><td>${site.name}</td><td>${site.coordinates[0][0]}</td><td>${site.coordinates[0][1]}</td><td>${site.lastCollection}</td></tr>`).join(''));
+        }
+
+        // Fonction pour obtenir la couleur en fonction de la date de la dernière collecte
+        function getColor(lastCollection) {
+            const today = new Date();
+            const collectionDate = new Date(lastCollection);
+            const diffDays = Math.floor((today - collectionDate) / (1000 * 60 * 60 * 24));
+            return diffDays <= 30 ? '#9ACD32' : (diffDays <= 60 ? '#FFA500' : '#DC143C');
+        }
+
+        // Afficher les polygones sur la carte
+        greenSpaces.forEach((site, index) => {
+            var color = getColor(site.lastCollection);
+            var coordinates = site.coordinates[0]; // Utiliser la première coordonnée pour le lien Google Maps
+            var googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=${coordinates[0]},${coordinates[1]}`;
+            var popupContent = `<b>${site.name}</b><br>Dernière Collecte: ${site.lastCollection}<br><a href="${googleMapsLink}" class="btn btn-primary btn-sm mt-2" target="_blank">S'y rendre</a>`;
+            var polygon = L.polygon(site.coordinates, { color: color, fillColor: color, fillOpacity: 0.5 }).addTo(map).bindPopup(popupContent);
+            polygons.push(polygon);
+        });
+
+        // Ouvrir le popup correspondant lorsque l'on clique sur un élément de la liste
+        $('#site-list').on('click', '.list-group-item', function() {
+            var index = $(this).data('index');
+            if (index !== undefined) {
+                polygons[index].openPopup();
+                map.flyTo(polygons[index].getBounds().getCenter(), 16);
+            }
+        });
+
+        // Afficher la liste au chargement et cacher les autres sections
+        $('#site-list').removeClass('hidden');
+        $('#site-table, #planning-content').addClass('hidden');
+        displayList(greenSpaces);
+        displayTable(greenSpaces);
+
+        // Fonction pour afficher les sites en fonction du mode de vue sélectionné
+        $('#search').on('input', function() {
+            var query = $(this).val().toLowerCase();
+            var filteredSites = greenSpaces.filter(site => site.name.toLowerCase().includes(query));
+            displayList(filteredSites);
+            displayTable(filteredSites);
+        });
+
+        $('#view-list').on('click', function() {
+            $('#site-list').removeClass('hidden');
+            $('#site-table, #planning-content').addClass('hidden');
+        });
+
+        $('#view-table').on('click', function() {
+            $('#site-list').addClass('hidden');
+            $('#site-table').removeClass('hidden');
+            $('#planning-content').addClass('hidden');
+        });
+
+        $('#view-planning').on('click', function() {
+            $('#site-list, #site-table').addClass('hidden');
+            $('#planning-content').removeClass('hidden');
+        });
+    </script>
+</body>
+</html>

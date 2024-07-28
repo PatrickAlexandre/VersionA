@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secteur Nord @Sartrouville | Jardiniers Espaces Vert</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles_secteur.css">
+    <style>
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900" data-theme="light">
+    <header class="bg-green-600 text-white py-4 text-center relative">
+        <h1 class="text-xl font-bold">Secteur Nord @Sartrouville</h1>
+        <p class="text-sm">Application destinée à aider les jardiniers à gérer les espaces verts</p>
+        <div class="dropdown absolute right-4 top-4">
+            <button class="text-white text-lg"><i class="fas fa-bars"></i></button>
+            <div class="dropdown-content">
+                <a href="#" id="theme-toggle">Mode Sombre</a>
+            </div>
+        </div>
+    </header>
+    <main class="p-4 container mx-auto">
+        <section id="carte" class="section">
+            <h2 class="text-xl font-bold mb-2">Carte</h2>
+            <div id="map" style="height: 200px;"></div>
+            <a href="https://www.google.com/maps" target="_blank" class="btn-link">
+                <i class="fas fa-satellite"></i>
+            </a>
+            <a href="https://earth.google.com/web/" target="_blank" class="btn-link">
+                <i class="fas fa-globe"></i>
+            </a>
+            <a href="https://www.google.com/maps/@?api=1&map_action=pano" target="_blank" class="btn-link">
+                <i class="fas fa-street-view"></i>
+            </a>
+        </section>
+        <section id="sites" class="section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="text-xl font-bold mb-2">Sites</h2>
+                <div class="view-options">
+                    <input type="text" id="search" class="form-control mr-3" placeholder="Rechercher un site...">
+                    <button id="list-view-btn" class="active"><i class="fas fa-list"></i></button>
+                    <button id="grid-view-btn"><i class="fas fa-th"></i></button>
+                </div>
+            </div>
+            <div id="site-container" class="list-view">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nom du Site</th>
+                            <th scope="col">Adresse</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="site-table-body">
+                        <!-- Les sites seront générés ici par JavaScript -->
+                    </tbody>
+                </table>
+                <div id="site-cards" class="row">
+                    <!-- Les cartes des sites seront générées ici par JavaScript -->
+                </div>
+            </div>
+        </section>
+        <section id="calendrier" class="section">
+            <h2 class="text-xl font-bold mb-2">Calendrier</h2>
+            <iframe src="https://calendar.google.com/calendar/embed?src=en.fr%23holiday%40group.v.calendar.google.com&ctz=Europe%2FParis" style="border: 0" width="100%" height="450" frameborder="0" scrolling="no"></iframe>
+        </section>
+    </main>
+    <nav class="mobile-nav flex">
+        <a href="#carte" class="active"><i class="fas fa-map fa-lg"></i><span class="text-sm mt-1">Carte</span></a>
+        <a href="#sites"><i class="fas fa-tree fa-lg"></i><span class="text-sm mt-1">Sites</span></a>
+        <a href="#calendrier"><i class="fas fa-calendar-alt fa-lg"></i><span class="text-sm mt-1">Calendrier</span></a>
+    </nav>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script_secteur.js"></script>
+</body>
+</html>

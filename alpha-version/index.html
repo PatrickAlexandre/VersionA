@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secteur Nord @Sartrouville | Jardiniers Espaces Vert</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles_secteur.css">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --nav-bg: #ffffff;
+            --nav-text: #4b5563;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a202c;
+            --text-color: #a0aec0;
+            --nav-bg: #2d3748;
+            --nav-text: #cbd5e0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: var(--nav-bg);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .mobile-nav a {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            color: var(--nav-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            background: #34d399;
+            color: white;
+        }
+
+        .section {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .section:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: var(--nav-bg);
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            color: var(--nav-text);
+            padding: 12px 16px;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #34d399;
+            color: white;
+        }
+
+        .btn-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            margin: 0.5rem;
+            background-color: #34d399;
+            color: white;
+            border-radius: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-link:hover {
+            background-color: #2c9a77;
+        }
+
+        .view-options {
+            display: flex;
+            align-items: center;
+        }
+
+        .view-options button {
+            margin-left: 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+        .view-options button.active {
+            color: #2c9a77;
+        }
+
+        .grid-view .table,
+        .grid-view .table thead {
+            display: none;
+        }
+
+        .grid-view .card {
+            display: block;
+        }
+
+        .list-view .card {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-900" data-theme="light">
+    <header class="bg-green-600 text-white py-4 text-center relative">
+        <h1 class="text-xl font-bold">Secteur Nord @Sartrouville</h1>
+        <p class="text-sm">Application destinée à aider les jardiniers à gérer les espaces verts</p>
+        <div class="dropdown absolute right-4 top-4">
+            <button class="text-white text-lg"><i class="fas fa-bars"></i></button>
+            <div class="dropdown-content">
+                <a href="#" id="theme-toggle">Mode Sombre</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="p-4 container mx-auto">
+        <section id="carte" class="section">
+            <h2 class="text-xl font-bold mb-2">Carte</h2>
+            <div id="map" style="height: 200px;"></div>
+            <a href="https://www.google.com/maps" target="_blank" class="btn-link">
+                <i class="fas fa-satellite"></i>
+            </a>
+            <a href="https://earth.google.com/web/" target="_blank" class="btn-link">
+                <i class="fas fa-globe"></i>
+            </a>
+            <a href="https://www.google.com/maps/@?api=1&map_action=pano" target="_blank" class="btn-link">
+                <i class="fas fa-street-view"></i>
+            </a>
+        </section>
+
+        <section id="sites" class="section">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold mb-2">Sites</h2>
+                <div class="view-options">
+                    <input type="text" id="search" class="form-input mr-3" placeholder="Rechercher un site...">
+                    <button id="list-view-btn" class="active"><i class="fas fa-list"></i></button>
+                    <button id="grid-view-btn"><i class="fas fa-th"></i></button>
+                </div>
+            </div>
+            <div id="site-container" class="list-view">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Nom du Site</th>
+                            <th scope="col">Adresse</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="site-table-body">
+                        <!-- Les sites seront générés ici par JavaScript -->
+                    </tbody>
+                </table>
+                <div id="site-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Les cartes des sites seront générées ici par JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <section id="calendrier" class="section">
+            <h2 class="text-xl font-bold mb-2">Calendrier</h2>
+            <iframe src="https://calendar.google.com/calendar/embed?src=en.fr%23holiday%40group.v.calendar.google.com&ctz=Europe%2FParis" style="border: 0" width="100%" height="450" frameborder="0" scrolling="no"></iframe>
+        </section>
+    </main>
+
+    <nav class="mobile-nav flex">
+        <a href="#carte" class="active"><i class="fas fa-map fa-lg"></i><span class="text-sm mt-1">Carte</span></a>
+        <a href="#sites"><i class="fas fa-tree fa-lg"></i><span class="text-sm mt-1">Sites</span></a>
+        <a href="#calendrier"><i class="fas fa-calendar-alt fa-lg"></i><span class="text-sm mt-1">Calendrier</span></a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="script_secteur.js"></script>
+    <script>
+        function activateLink(e) {
+            document.querySelectorAll('nav.mobile-nav a').forEach(link => link.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.body.setAttribute('data-theme', newTheme);
+            e.currentTarget.textContent = newTheme === 'light' ? 'Mode Sombre' : 'Mode Clair';
+        });
+
+        document.querySelectorAll('nav.mobile-nav a').forEach(link => {
+            link.addEventListener('click', activateLink);
+        });
+
+        const sections = document.querySelectorAll('.section');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    document.querySelector('nav.mobile-nav a.active').classList.remove('active');
+                    document.querySelector(`nav.mobile-nav a[href="#${entry.target.id}"]`).classList.add('active');
+                }
+            });
+        }, { threshold: 0.5 });
+
+        sections.forEach(section => observer.observe(section));
+
+        // Initialize Leaflet map
+        const map = L.map('map').setView([48.948, 2.168], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors
+        }).addTo(map);
+
+        // Site data
+        const sites = [
+            { id: 1, name: "Parc Youri Gagarine", address: "Rue Genevoix", coords: [48.948, 2.168] },
+            { id: 2, name: "Parc Léo Lagrange", address: "Rue Genevoix", coords: [48.949, 2.169] },
+            { id: 3, name: "Jardin Paul Déroulède", address: "Rue de Déroulède", coords: [48.9485, 2.1665] },
+            { id: 4, name: "Rond-Point des Combattants", address: "Avenue de la République", coords: [48.946, 2.162] },
+            { id: 5, name: "Square Pierre et Marie Curie", address: "Rue Pierre et Marie Curie", coords: [48.9472, 2.1678] },
+            // Ajoutez d'autres sites ici avec leurs coordonnées
+        ];
+
+        // Add sites to map
+        sites.forEach(site => {
+            L.marker(site.coords).addTo(map)
+                .bindPopup(`${site.name}<br>${site.address}`);
+        });
+
+        // Populate table with site data
+        const siteTableBody = document.getElementById('site-table-body');
+        const siteCardsContainer = document.getElementById('site-cards');
+        sites.forEach(site => {
+            // Table rows
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <th scope="row">${site.id}</th>
+                <td>${site.name}</td>
+                <td>${site.address}</td>
+                <td>
+                    <a href="https://www.google.com/maps?q=${site.coords[0]},${site.coords[1]}" target="_blank" class="btn btn-info btn-sm">
+                        <i class="fas fa-map-marker-alt"></i> Voir Carte
+                    </a>
+                </td>
+            `;
+            siteTableBody.appendChild(row);
+
+            // Grid cards
+            const card = document.createElement('div');
+            card.className = 'card col-md-4 mb-3';
+            card.innerHTML = `
+                <div class="card-body">
+                    <h5 class="card-title">${site.name}</h5>
+                    <p class="card-text">${site.address}</p>
+                    <a href="https://www.google.com/maps?q=${site.coords[0]},${site.coords[1]}" target="_blank" class="btn btn-info btn-sm">
+                        <i class="fas fa-map-marker-alt"></i> Voir Carte
+                    </a>
+                </div>
+            `;
+            siteCardsContainer.appendChild(card);
+        });
+
+        // Search functionality
+        document.getElementById('search').addEventListener('input', function () {
+            const searchValue = this.value.toLowerCase();
+            const rows = siteTableBody.querySelectorAll('tr');
+            const cards = siteCardsContainer.querySelectorAll('.card');
+            rows.forEach(row => {
+                const siteName = row.cells[1].textContent.toLowerCase();
+                if (siteName.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            cards.forEach(card => {
+                const siteName = card.querySelector('.card-title').textContent.toLowerCase();
+                if (siteName.includes(searchValue)) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Toggle view functionality
+        document.getElementById('list-view-btn').addEventListener('click', () => {
+            document.getElementById('site-container').classList.remove('grid-view');
+            document.getElementById('site-container').classList.add('list-view');
+            document.getElementById('list-view-btn').classList.add('active');
+            document.getElementById('grid-view-btn').classList.remove('active');
+        });
+
+        document.getElementById('grid-view-btn').addEventListener('click', () => {
+            document.getElementById('site-container').classList.remove('list-view');
+            document.getElementById('site-container').classList.add('grid-view');
+            document.getElementById('grid-view-btn').classList.add('active');
+            document.getElementById('list-view-btn').classList.remove('active');
+        });
+    </script>
+</body>
+
+</html>

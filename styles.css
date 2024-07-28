@@ -1,0 +1,26 @@
+
+#map { height: 100vh; }
+#planning { height: 100vh; overflow-y: auto; }
+@media (max-width: 768px) {
+    #map { height: 50vh; }
+    #planning { height: 50vh; }
+}
+.hidden { display: none; }
+.btn-icon { font-size: 1.2rem; }
+.btn-primary { background-color: #006400; border-color: #004d00; }
+.btn-primary:hover { background-color: #004d00; border-color: #003300; }
+.table th, .table td { text-align: center; }
+.table-bordered { border-color: #006400; }
+.table-bordered th, .table-bordered td { border: 1px solid #006400; }
+#site-list ul { padding: 0; list-style: none; }
+#site-list .list-group-item { background-color: #f0f8ff; border: 1px solid #006400; }
+#site-list .list-group-item:hover { background-color: #e6ffe6; }
+#planning-content { background-color: #f0f8ff; padding: 15px; }
+#site-table {
+    overflow-x: auto;
+}
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+    

@@ -4,26 +4,30 @@
     --nav-bg: #ffffff;
     --nav-text: #4b5563;
 }
+
 [data-theme="dark"] {
     --bg-color: #1a202c;
     --text-color: #a0aec0;
     --nav-bg: #2d3748;
     --nav-text: #cbd5e0;
 }
+
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s, color 0.3s;
 }
+
 .mobile-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background: var(--nav-bg);
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     border-top: 1px solid #e5e7eb;
 }
+
 .mobile-nav a {
     flex: 1;
     padding: 1rem;
@@ -35,10 +39,13 @@ body {
     justify-content: center;
     transition: background 0.3s, color 0.3s;
 }
-.mobile-nav a:hover, .mobile-nav a.active {
-    background: #34D399;
+
+.mobile-nav a:hover,
+.mobile-nav a.active {
+    background: #34d399;
     color: white;
 }
+
 .section {
     padding: 1rem;
     margin-bottom: 1rem;
@@ -48,37 +55,73 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background 0.3s, box-shadow 0.3s;
 }
+
 .section:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
 .dropdown-content {
     display: none;
     position: absolute;
     right: 0;
     background-color: var(--nav-bg);
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
 }
+
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
 .dropdown-content a {
     color: var(--nav-text);
     padding: 12px 16px;
     display: block;
 }
+
 .dropdown-content a:hover {
-    background-color: #34D399;
+    background-color: #34d399;
     color: white;
 }
+
 .btn-link {
     display: inline-block;
     padding: 0.5rem 1rem;
     margin: 0.5rem;
-    background-color: #34D399;
+    background-color: #34d399;
     color: white;
     border-radius: 0.5rem;
     text-decoration: none;
 }
+
 .btn-link:hover {
     background-color: #2c9a77;
+}
+
+.view-options {
+    display: flex;
+    align-items: center;
+}
+
+.view-options button {
+    margin-left: 10px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.view-options button.active {
+    color: #2c9a77;
+}
+
+.grid-view .table,
+.grid-view .table thead {
+    display: none;
+}
+
+.grid-view .card {
+    display: block;
+}
+
+.list-view .card {
+    display: none;
 }
